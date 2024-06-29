@@ -41,6 +41,20 @@
 
 */
 
+enum
+{
+	NUM_TUNEZONES = 256
+};
+
+enum EGameTypes
+{
+	GAMETYPE_HIDDEN = 0,
+	GAMETYPE_HIDDENDEATH,
+	GAMETYPE_DEATHRUN,
+	GAMETYPE_JAIL,
+	GAMETYPE_TEAM,
+};
+
 class CCharacter;
 class IConfigManager;
 class CConfig;
@@ -591,6 +605,7 @@ public:
 		VOTE_TYPE_SPECTATE,
 	};
 	int m_VoteVictim;
+	int m_ModGameType;
 
 	inline bool IsOptionVote() const { return m_VoteType == VOTE_TYPE_OPTION; }
 	inline bool IsKickVote() const { return m_VoteType == VOTE_TYPE_KICK; }

@@ -34,6 +34,7 @@ public:
 	void Respawn(bool WeakHook = false); // with WeakHook == true the character will be spawned after all calls of Tick from other Players
 	CCharacter *ForceSpawn(vec2 Pos); // required for loading savegames
 	void SetTeam(int Team, bool DoChatMsg = true);
+	void SetForceTeam(int Team);
 	int GetTeam() const { return m_Team; }
 	int GetCid() const { return m_ClientId; }
 	uint32_t GetUniqueCid() const { return m_UniqueClientId; }
@@ -233,6 +234,8 @@ public:
 	bool m_BirthdayAnnounced;
 
 	int m_RescueMode;
+	bool m_DeadSpec;
+	bool m_Sleep;
 
 	CSaveTee m_LastTeleTee;
 };

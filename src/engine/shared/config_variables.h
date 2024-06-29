@@ -247,13 +247,13 @@ MACRO_CONFIG_INT(ClSkipStartMenu, cl_skip_start_menu, 0, 0, 1, CFGFLAG_CLIENT | 
 // server
 MACRO_CONFIG_INT(SvWarmup, sv_warmup, 0, 0, 0, CFGFLAG_SERVER, "Number of seconds to do warmup before round starts")
 MACRO_CONFIG_STR(SvMotd, sv_motd, 900, "", CFGFLAG_SERVER, "Message of the day to display for the clients")
-MACRO_CONFIG_STR(SvGametype, sv_gametype, 32, "ddnet", CFGFLAG_SERVER, "Game type (ddnet, mod)")
+MACRO_CONFIG_STR(SvGametype, sv_gametype, 32, "hidden", CFGFLAG_SERVER | CFGFLAG_GAME, "Game type (hidden, hiddendeath, deathrun, jail, team)")
 MACRO_CONFIG_INT(SvTournamentMode, sv_tournament_mode, 0, 0, 1, CFGFLAG_SERVER, "Tournament mode. When enabled, players joins the server as spectator")
 MACRO_CONFIG_INT(SvSpamprotection, sv_spamprotection, 1, 0, 1, CFGFLAG_SERVER, "Spam protection for: team change, chat, skin change, emotes and votes")
 
 MACRO_CONFIG_INT(SvSpectatorSlots, sv_spectator_slots, 0, 0, SERVER_MAX_CLIENTS, CFGFLAG_SERVER, "Number of slots to reserve for spectators")
-MACRO_CONFIG_INT(SvInactiveKickTime, sv_inactivekick_time, 0, 0, 1000, CFGFLAG_SERVER, "How many minutes to wait before taking care of inactive players")
-MACRO_CONFIG_INT(SvInactiveKick, sv_inactivekick, 0, 0, 2, CFGFLAG_SERVER, "How to deal with inactive players (0=move to spectator, 1=move to free spectator slot/kick, 2=kick)")
+MACRO_CONFIG_INT(SvInactiveKickTime, sv_inactivekick_time, 2, 0, 1000, CFGFLAG_SERVER, "How many minutes to wait before taking care of inactive players")
+MACRO_CONFIG_INT(SvInactiveKick, sv_inactivekick, 2, 0, 2, CFGFLAG_SERVER, "How to deal with inactive players (0=move to spectator, 1=move to free spectator slot/kick, 2=kick)")
 
 MACRO_CONFIG_INT(SvStrictSpectateMode, sv_strict_spectate_mode, 0, 0, 1, CFGFLAG_SERVER, "Restricts information in spectator mode")
 MACRO_CONFIG_INT(SvVoteSpectate, sv_vote_spectate, 1, 0, 1, CFGFLAG_SERVER, "Allow voting to move players to spectators")
@@ -507,7 +507,8 @@ MACRO_CONFIG_INT(ClDDRaceBindsSet, cl_race_binds_set, 0, 0, 1, CFGFLAG_CLIENT | 
 MACRO_CONFIG_INT(SvEndlessSuperHook, sv_endless_super_hook, 0, 0, 1, CFGFLAG_SERVER, "Endless hook for super players on/off")
 MACRO_CONFIG_INT(SvHideScore, sv_hide_score, 0, 0, 1, CFGFLAG_SERVER, "Whether players scores will be announced or not")
 MACRO_CONFIG_INT(SvSaveWorseScores, sv_save_worse_scores, 1, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether to save worse scores when you already have a better one")
-MACRO_CONFIG_INT(SvPauseable, sv_pauseable, 0, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether players can pause their char or not")
+MACRO_CONFIG_INT(SvPauseable, sv_pauseable, 0, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether players can pause their char or not (/spec)")
+MACRO_CONFIG_INT(SvAllowPause, sv_allowpause, 1, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether players can pause their char or not (/pause)")
 MACRO_CONFIG_INT(SvPauseMessages, sv_pause_messages, 0, 0, 1, CFGFLAG_SERVER, "Whether to show messages when a player pauses and resumes")
 MACRO_CONFIG_INT(SvSpecFrequency, sv_pause_frequency, 1, 0, 9999, CFGFLAG_SERVER, "The minimum allowed delay between /spec")
 MACRO_CONFIG_INT(SvInvite, sv_invite, 1, 0, 1, CFGFLAG_SERVER, "Whether players can invite other players to teams")
@@ -579,7 +580,7 @@ MACRO_CONFIG_INT(SvOldLaser, sv_old_laser, 0, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAM
 MACRO_CONFIG_INT(SvSlashMe, sv_slash_me, 0, 0, 1, CFGFLAG_SERVER, "Whether /me is active on the server or not")
 MACRO_CONFIG_INT(SvRejoinTeam0, sv_rejoin_team_0, 1, 0, 1, CFGFLAG_SERVER, "Make a team automatically rejoin team 0 after finish (only if not locked)")
 
-MACRO_CONFIG_INT(SvNoWeakHook, sv_no_weak_hook, 0, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether to use an alternative calculation for world ticks, that makes the hook behave like all players have strong.")
+MACRO_CONFIG_INT(SvNoWeakHook, sv_no_weak_hook, 1, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether to use an alternative calculation for world ticks, that makes the hook behave like all players have strong.")
 
 MACRO_CONFIG_INT(ClReconnectTimeout, cl_reconnect_timeout, 120, 0, 600, CFGFLAG_CLIENT | CFGFLAG_SAVE, "How many seconds to wait before reconnecting (after timeout, 0 for off)")
 MACRO_CONFIG_INT(ClReconnectFull, cl_reconnect_full, 5, 0, 600, CFGFLAG_CLIENT | CFGFLAG_SAVE, "How many seconds to wait before reconnecting (when server is full, 0 for off)")
@@ -654,6 +655,8 @@ MACRO_CONFIG_INT(SvNamelessScore, sv_nameless_score, 1, 0, 1, CFGFLAG_SERVER, "W
 MACRO_CONFIG_INT(SvTimeInBroadcastInterval, sv_time_in_broadcast_interval, 1, 0, 60, CFGFLAG_SERVER, "How often to update the broadcast time")
 MACRO_CONFIG_INT(SvDefaultTimerType, sv_default_timer_type, 0, 0, 3, CFGFLAG_SERVER, "Default way of displaying time either game/round timer or broadcast. 0 = game/round timer, 1 = broadcast, 2 = 0+1, 3 = none")
 
+MACRO_CONFIG_INT(SvTimelimit, sv_timelimit, 5, 0, 360, CFGFLAG_SERVER | CFGFLAG_GAME, "Time limit in minutes")
+MACRO_CONFIG_INT(SvReservedTime, sv_reserved_time, 15, 0, 360, CFGFLAG_SERVER | CFGFLAG_GAME, "The time in seconds before red team has been reserved")
 // these might need some fine tuning
 MACRO_CONFIG_INT(SvChatInitialDelay, sv_chat_initial_delay, 0, 0, 360, CFGFLAG_SERVER, "The time in seconds before the first message can be sent")
 MACRO_CONFIG_INT(SvChatPenalty, sv_chat_penalty, 250, 50, 1000, CFGFLAG_SERVER, "chat score will be increased by this on every message, and decremented by 1 on every tick.")

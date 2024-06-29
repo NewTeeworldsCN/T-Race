@@ -527,7 +527,7 @@ void IGameController::Tick()
 	if(m_GameOverTick != -1)
 	{
 		// game over.. wait for restart
-		if(Server()->Tick() > m_GameOverTick + Server()->TickSpeed() * 10)
+		if(Server()->Tick() > m_GameOverTick + Server()->TickSpeed() * 3)
 		{
 			StartRound();
 			m_RoundCount++;
@@ -704,7 +704,7 @@ int IGameController::ClampTeam(int Team)
 {
 	if(Team < 0)
 		return TEAM_SPECTATORS;
-	return 0;
+	return Team ? TEAM_BLUE : TEAM_RED;
 }
 
 CClientMask IGameController::GetMaskForPlayerWorldEvent(int Asker, int ExceptId)
