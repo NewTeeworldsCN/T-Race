@@ -9,6 +9,7 @@
 #include <game/mapitems.h>
 
 #include <game/server/gamecontext.h>
+#include <game/server/player.h>
 #include <game/server/gamemodes/DDRace.h>
 
 CLaser::CLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEnergy, int Owner, int Type) :
@@ -92,7 +93,10 @@ bool CLaser::HitCharacter(vec2 From, vec2 To)
 	}
 	else if(m_Type == WEAPON_LASER)
 	{
-		pHit->UnFreeze();
+		if(pOwnerChar && pHit->GetPlayer()->GetTeam() != pOwnerChar->GetPlayer()->GetTeam())
+			pHit->Freeze(g_Config.m_SvFreezeDelay);
+		else
+			pHit->UnFreeze();
 	}
 	pHit->TakeDamage(vec2(0, 0), 0, m_Owner, m_Type);
 	return true;
