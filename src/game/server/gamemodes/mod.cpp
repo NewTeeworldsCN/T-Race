@@ -69,6 +69,8 @@ void CGameControllerMod::DoWincheck()
 	{
 		if(pPlayerA)
 		{
+			if(!pPlayerA->GetCharacter())
+				continue;
 			if(pPlayerA->GetTeam() == TEAM_RED)
 				m_TeamPlayersNum[TEAM_RED] ++;
 			if(pPlayerA->GetTeam() == TEAM_BLUE)
@@ -79,7 +81,7 @@ void CGameControllerMod::DoWincheck()
 	if(m_TeamPlayersNum[TEAM_BLUE] + m_TeamPlayersNum[TEAM_RED] < 2)
 		return;
 
-	if(m_GameType != GAMETYPE_TEAM)
+	if(m_GameType != GAMETYPE_TEAM && m_GameType != GAMETYPE_JAIL)
 	{
 		if(!m_TeamPlayersNum[TEAM_BLUE] && m_TeamPlayersNum[TEAM_RED])
 		{
@@ -89,7 +91,7 @@ void CGameControllerMod::DoWincheck()
 			GameServer()->SendChatTarget(-1, aBuf);
 			return;
 		}
-		else if(m_TeamPlayersNum[TEAM_BLUE] && !m_TeamPlayersNum[TEAM_RED])
+		else if((Server()->Tick() >= m_RoundStartTick + g_Config.m_SvTimelimit * 60 * Server()->TickSpeed()) || (m_TeamPlayersNum[TEAM_BLUE] && !m_TeamPlayersNum[TEAM_RED]))
 		{
 			EndRound();
 			char aBuf[64];
@@ -266,9 +268,20 @@ void CGameControllerMod::OnReset()
 			pPlayer->m_DeadSpec = false;
 			pPlayer->m_Sleep = false;
 			if(pPlayer->GetTeam() != TEAM_SPECTATORS)
+			{
+				pPlayer->SetForceTeam(TEAM_BLUE);
 				PlayerNum ++;
+			}
 		}
 	}
+	if(PlayerNum == 0)
+	{
+		IGameController::OnReset();
+
+		m_Winner = -1;
+		return;
+	}
+
 	// choose red team;
 	switch(m_GameType)
 	{
