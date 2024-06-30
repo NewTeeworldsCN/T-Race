@@ -44,6 +44,8 @@ CGameControllerMod::CGameControllerMod(class CGameContext *pGameServer) :
 		m_GameType = GAMETYPE_TEAM;
 	}
 
+	m_Resetting = false;
+
 	m_GameFlags = GAMEFLAG_TEAMS;
 	GameServer()->m_ModGameType = m_GameType;
 
