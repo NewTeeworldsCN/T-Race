@@ -509,6 +509,7 @@ MACRO_CONFIG_INT(SvHideScore, sv_hide_score, 0, 0, 1, CFGFLAG_SERVER, "Whether p
 MACRO_CONFIG_INT(SvSaveWorseScores, sv_save_worse_scores, 1, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether to save worse scores when you already have a better one")
 MACRO_CONFIG_INT(SvPauseable, sv_pauseable, 0, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether players can pause their char or not (/spec)")
 MACRO_CONFIG_INT(SvAllowPause, sv_allowpause, 1, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether players can pause their char or not (/pause)")
+MACRO_CONFIG_INT(SvTeamMode, sv_teammode, 0, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Let red and blue team join different DDRace teams(Team gametype only)")
 MACRO_CONFIG_INT(SvPauseMessages, sv_pause_messages, 0, 0, 1, CFGFLAG_SERVER, "Whether to show messages when a player pauses and resumes")
 MACRO_CONFIG_INT(SvSpecFrequency, sv_pause_frequency, 1, 0, 9999, CFGFLAG_SERVER, "The minimum allowed delay between /spec")
 MACRO_CONFIG_INT(SvInvite, sv_invite, 1, 0, 1, CFGFLAG_SERVER, "Whether players can invite other players to teams")

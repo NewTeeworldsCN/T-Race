@@ -81,9 +81,9 @@ void CGameControllerMod::DoWincheck()
 	if(m_TeamPlayersNum[TEAM_BLUE] + m_TeamPlayersNum[TEAM_RED] < 2)
 		return;
 
-	if(m_GameType != GAMETYPE_TEAM && m_GameType != GAMETYPE_JAIL)
+	if(m_GameType != GAMETYPE_TEAM)
 	{
-		if(!m_TeamPlayersNum[TEAM_BLUE] && m_TeamPlayersNum[TEAM_RED])
+		if((!m_TeamPlayersNum[TEAM_BLUE] && m_TeamPlayersNum[TEAM_RED]) || (m_GameType == GAMETYPE_DEATHRUN && Server()->Tick() >= m_RoundStartTick + g_Config.m_SvTimelimit * 60 * Server()->TickSpeed()))
 		{
 			m_Resetting = true;
 			EndRound();
@@ -92,7 +92,80 @@ void CGameControllerMod::DoWincheck()
 			GameServer()->SendChatTarget(-1, aBuf);
 			return;
 		}
-		else if((Server()->Tick() >= m_RoundStartTick + g_Config.m_SvTimelimit * 60 * Server()->TickSpeed()) || (m_TeamPlayersNum[TEAM_BLUE] && !m_TeamPlayersNum[TEAM_RED]))
+		else if((m_GameType != GAMETYPE_DEATHRUN && Server()->Tick() >= m_RoundStartTick + g_Config.m_SvTimelimit * 60 * Server()->TickSpeed()) || (m_TeamPlayersNum[TEAM_BLUE] && !m_TeamPlayersNum[TEAM_RED]))
+		{
+			m_Resetting = true;
+			EndRound();
+			char aBuf[64];
+			str_format(aBuf, sizeof(aBuf), "%ss win!", GetTeamName(TEAM_BLUE));
+			GameServer()->SendChatTarget(-1, aBuf);
+			return;
+		}
+	}
+	// death run finish
+	if(m_GameType == GAMETYPE_DEATHRUN)
+	{
+		int FinishPlayers = 0;
+		int AlivePlayers = 0;
+		for(auto &pPlayerA : GameServer()->m_apPlayers)
+		{
+			if(pPlayerA)
+			{
+				if(pPlayerA->GetTeam() == TEAM_BLUE)
+				{
+					if(Teams().GetDDRaceState(pPlayerA) == DDRACE_FINISHED)
+						FinishPlayers ++;
+					if(!pPlayerA->m_DeadSpec)
+						AlivePlayers ++;
+				}
+			}
+		}
+
+		if(FinishPlayers >= AlivePlayers)
+		{
+			m_Resetting = true;
+			EndRound();
+			char aBuf[64];
+			str_format(aBuf, sizeof(aBuf), "Alive %ss win!", GetTeamName(TEAM_BLUE));
+			GameServer()->SendChatTarget(-1, aBuf);
+			return;
+		}
+	}
+	if(m_GameType == GAMETYPE_TEAM)
+	{
+		int FinishPlayers[] = {0, 0};
+		int AlivePlayers[] = {0, 0};
+		for(auto &pPlayerA : GameServer()->m_apPlayers)
+		{
+			if(pPlayerA)
+			{
+				if(pPlayerA->GetTeam() == TEAM_RED)
+				{
+					if(Teams().GetDDRaceState(pPlayerA) == DDRACE_FINISHED)
+						FinishPlayers[TEAM_RED] ++;
+					if(!pPlayerA->m_DeadSpec)
+						AlivePlayers[TEAM_RED] ++;
+				}
+				if(pPlayerA->GetTeam() == TEAM_BLUE)
+				{
+					if(Teams().GetDDRaceState(pPlayerA) == DDRACE_FINISHED)
+						FinishPlayers[TEAM_BLUE] ++;
+					if(!pPlayerA->m_DeadSpec)
+						AlivePlayers[TEAM_BLUE] ++;
+				}
+			}
+		}
+
+		if(FinishPlayers[TEAM_RED] >= AlivePlayers[TEAM_RED])
+		{
+			m_Resetting = true;
+			EndRound();
+			char aBuf[64];
+			str_format(aBuf, sizeof(aBuf), "%ss win!", GetTeamName(TEAM_RED));
+			GameServer()->SendChatTarget(-1, aBuf);
+			return;
+		}
+		else if(FinishPlayers[TEAM_BLUE] >= AlivePlayers[TEAM_BLUE])
 		{
 			m_Resetting = true;
 			EndRound();
@@ -155,17 +228,70 @@ bool CGameControllerMod::CanSpawn(int Team, vec2 *pOutPos, int DDTeam)
 
 void CGameControllerMod::HandleCharacterTiles(CCharacter *pChr, int MapIndex)
 {
-	if(m_GameType != GAMETYPE_HIDDEN && m_GameType != GAMETYPE_HIDDENDEATH)
-		return;
+	bool HiddenType = m_GameType == GAMETYPE_HIDDEN || m_GameType == GAMETYPE_HIDDENDEATH;
+	bool FinishType = m_GameType == GAMETYPE_DEATHRUN || m_GameType == GAMETYPE_TEAM;
 
 	int TileIndex = GameServer()->Collision()->GetTileIndex(MapIndex);
 	int TileFIndex = GameServer()->Collision()->GetFrontTileIndex(MapIndex);
 
 	// hidden part
-	if(((TileIndex == TILE_SOLO_ENABLE) || (TileFIndex == TILE_SOLO_ENABLE)))
+	if(HiddenType)
 	{
-		pChr->SetHidden(true);
+		if(((TileIndex == TILE_SOLO_ENABLE) || (TileFIndex == TILE_SOLO_ENABLE)))
+		{
+			pChr->SetHidden(true);
+		}
 	}
+	else if(FinishType)
+	{
+		CPlayer *pPlayer = pChr->GetPlayer();
+		const int ClientId = pPlayer->GetCid();
+		//Sensitivity
+		int S1 = GameServer()->Collision()->GetPureMapIndex(vec2(pChr->GetPos().x + pChr->GetProximityRadius() / 3.f, pChr->GetPos().y - pChr->GetProximityRadius() / 3.f));
+		int S2 = GameServer()->Collision()->GetPureMapIndex(vec2(pChr->GetPos().x + pChr->GetProximityRadius() / 3.f, pChr->GetPos().y + pChr->GetProximityRadius() / 3.f));
+		int S3 = GameServer()->Collision()->GetPureMapIndex(vec2(pChr->GetPos().x - pChr->GetProximityRadius() / 3.f, pChr->GetPos().y - pChr->GetProximityRadius() / 3.f));
+		int S4 = GameServer()->Collision()->GetPureMapIndex(vec2(pChr->GetPos().x - pChr->GetProximityRadius() / 3.f, pChr->GetPos().y + pChr->GetProximityRadius() / 3.f));
+		int Tile1 = GameServer()->Collision()->GetTileIndex(S1);
+		int Tile2 = GameServer()->Collision()->GetTileIndex(S2);
+		int Tile3 = GameServer()->Collision()->GetTileIndex(S3);
+		int Tile4 = GameServer()->Collision()->GetTileIndex(S4);
+		int FTile1 = GameServer()->Collision()->GetFTileIndex(S1);
+		int FTile2 = GameServer()->Collision()->GetFTileIndex(S2);
+		int FTile3 = GameServer()->Collision()->GetFTileIndex(S3);
+		int FTile4 = GameServer()->Collision()->GetFTileIndex(S4);
+
+		const int PlayerDDRaceState = pChr->m_DDRaceState;
+		bool IsOnStartTile = (TileIndex == TILE_START) || (TileFIndex == TILE_START) || FTile1 == TILE_START || FTile2 == TILE_START || FTile3 == TILE_START || FTile4 == TILE_START || Tile1 == TILE_START || Tile2 == TILE_START || Tile3 == TILE_START || Tile4 == TILE_START;
+		// start
+		if(IsOnStartTile && PlayerDDRaceState != DDRACE_CHEAT)
+		{
+			Teams().OnCharacterStart(ClientId);
+			pChr->m_LastTimeCp = -1;
+			pChr->m_LastTimeCpBroadcasted = -1;
+			for(float &CurrentTimeCp : pChr->m_aCurrentTimeCp)
+			{
+				CurrentTimeCp = 0.0f;
+			}
+		}
+
+		// finish
+		if(((TileIndex == TILE_FINISH) || (TileFIndex == TILE_FINISH) || FTile1 == TILE_FINISH || FTile2 == TILE_FINISH || FTile3 == TILE_FINISH || FTile4 == TILE_FINISH || Tile1 == TILE_FINISH || Tile2 == TILE_FINISH || Tile3 == TILE_FINISH || Tile4 == TILE_FINISH) && PlayerDDRaceState == DDRACE_STARTED)
+			Teams().OnCharacterFinish(ClientId);
+
+		// solo part
+		if(((TileIndex == TILE_SOLO_ENABLE) || (TileFIndex == TILE_SOLO_ENABLE)) && !Teams().m_Core.GetSolo(ClientId))
+		{
+			GameServer()->SendChatTarget(ClientId, "You are now in a solo part");
+			pChr->SetSolo(true);
+		}
+		else if(((TileIndex == TILE_SOLO_DISABLE) || (TileFIndex == TILE_SOLO_DISABLE)) && Teams().m_Core.GetSolo(ClientId))
+		{
+			GameServer()->SendChatTarget(ClientId, "You are now out of the solo part");
+			pChr->SetSolo(false);
+		}
+	}
+
+
 }
 
 void CGameControllerMod::OnPlayerConnect(CPlayer *pPlayer)
@@ -329,8 +455,19 @@ void CGameControllerMod::OnReset()
 				if(pPlayer && pPlayer->GetTeam() != TEAM_SPECTATORS)
 				{
 					pPlayer->SetForceTeam(Blue);
+					if(g_Config.m_SvTeamMode && m_GameType == GAMETYPE_TEAM)
+					{
+						Teams().SetForceCharacterTeam(pPlayer->GetCid(), Blue ? 2 : 1);
+					}
 					Blue = !Blue;
 				}
+			}
+			if(m_GameType == GAMETYPE_TEAM)
+			{
+				Teams().SetTeamFlock(1, true);
+				Teams().SetTeamFlock(2, true);
+				Teams().SetTeamLock(1, true);
+				Teams().SetTeamLock(2, true);
 			}
 		}
 		break;
@@ -507,9 +644,6 @@ void CGameControllerMod::DoTeamChange(class CPlayer *pPlayer, int Team, bool DoC
 				PlayerNum ++;
 		}
 	}
-
-	if(pPlayer->GetTeam() != TEAM_SPECTATORS && Team != TEAM_SPECTATORS)
-		return;
 
 	if(PlayerNum > 2)
 	{
