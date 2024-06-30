@@ -307,12 +307,18 @@ void CGameControllerMod::OnPlayerConnect(CPlayer *pPlayer)
 	Score()->LoadPlayerData(ClientId);
 
 	int PlayerNum = 0;
+	int TeamPlayersNum[] = {0, 0};
 	for(auto &pPlayerA : GameServer()->m_apPlayers)
 	{
 		if(pPlayerA)
 		{
-			if(pPlayerA->GetTeam() != TEAM_SPECTATORS)
-				PlayerNum ++;
+			if(pPlayerA->GetTeam() == TEAM_SPECTATORS)		
+				continue;
+			if(pPlayerA->GetTeam() == TEAM_RED)
+				TeamPlayersNum[TEAM_RED]++;
+			else
+				TeamPlayersNum[TEAM_BLUE]++;
+			PlayerNum ++;
 		}
 	}
 	if(PlayerNum == 2)
@@ -323,9 +329,18 @@ void CGameControllerMod::OnPlayerConnect(CPlayer *pPlayer)
 		if(m_GameType == GAMETYPE_TEAM || m_GameType == GAMETYPE_HIDDENDEATH || m_GameType == GAMETYPE_DEATHRUN)
 		{
 			pPlayer->SetTeam(TEAM_BLUE, false);
+			if(m_GameType == GAMETYPE_TEAM && TeamPlayersNum[TEAM_RED] < TeamPlayersNum[TEAM_BLUE])
+			{
+				pPlayer->SetForceTeam(TEAM_RED);
+			}
 			if(Server()->Tick() >= m_RoundStartTick + g_Config.m_SvReservedTime * Server()->TickSpeed())
 			{
 				pPlayer->m_DeadSpec = true;
+			}
+
+			if(m_GameType == GAMETYPE_TEAM)
+			{
+				Teams().SetForceCharacterTeam(pPlayer->GetCid(), pPlayer->GetTeam() ? 2 : 1);
 			}
 		}
 		else
