@@ -997,7 +997,7 @@ void CCharacter::Die(int Killer, int Weapon, bool SendKillMsg)
 	{
 		m_pPlayer->SetForceTeam(TEAM_RED);
 	}
-	else if(GameServer()->m_ModGameType != GAMETYPE_JAIL)
+	else if(GameServer()->m_ModGameType != GAMETYPE_JAIL && GameServer()->m_ModGameType != GAMETYPE_TEAM)
 	{
 		m_pPlayer->m_DeadSpec = true;
 	}
