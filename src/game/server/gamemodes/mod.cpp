@@ -360,6 +360,19 @@ void CGameControllerMod::Tick()
 			}
 		}
 	}
+	else if(Server()->Tick() < m_RoundStartTick + g_Config.m_SvReservedTime * Server()->TickSpeed())
+	{
+		if(m_GameType == GAMETYPE_HIDDEN || m_GameType == GAMETYPE_HIDDENDEATH || m_GameType == GAMETYPE_JAIL)
+		{
+			for(auto &pPlayer : GameServer()->m_apPlayers)
+			{
+				if(pPlayer && pPlayer->GetTeam() == TEAM_RED)
+				{
+					pPlayer->m_Sleep = true;
+				}
+			}
+		}
+	}
 
 	DoWincheck();
 
