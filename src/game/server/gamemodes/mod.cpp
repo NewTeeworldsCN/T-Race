@@ -518,9 +518,15 @@ void CGameControllerMod::Tick()
 		{
 			for(auto &pPlayer : GameServer()->m_apPlayers)
 			{
-				if(pPlayer && pPlayer->GetTeam() == TEAM_RED)
+				if(!pPlayer)
+					continue;
+				if(pPlayer->GetTeam() == TEAM_RED)
 				{
 					pPlayer->m_Sleep = true;
+				}
+				else if(pPlayer->GetTeam() == TEAM_BLUE)
+				{
+					pPlayer->m_Sleep = false;
 				}
 			}
 		}
