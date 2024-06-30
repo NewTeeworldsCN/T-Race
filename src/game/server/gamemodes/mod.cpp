@@ -85,6 +85,7 @@ void CGameControllerMod::DoWincheck()
 	{
 		if((!m_TeamPlayersNum[TEAM_BLUE] && m_TeamPlayersNum[TEAM_RED]) || (m_GameType == GAMETYPE_DEATHRUN && Server()->Tick() >= m_RoundStartTick + g_Config.m_SvTimelimit * 60 * Server()->TickSpeed()))
 		{
+			m_Winner = TEAM_RED;
 			m_Resetting = true;
 			EndRound();
 			char aBuf[64];
@@ -94,6 +95,7 @@ void CGameControllerMod::DoWincheck()
 		}
 		else if((m_GameType != GAMETYPE_DEATHRUN && Server()->Tick() >= m_RoundStartTick + g_Config.m_SvTimelimit * 60 * Server()->TickSpeed()) || (m_TeamPlayersNum[TEAM_BLUE] && !m_TeamPlayersNum[TEAM_RED]))
 		{
+			m_Winner = TEAM_BLUE;
 			m_Resetting = true;
 			EndRound();
 			char aBuf[64];
@@ -123,6 +125,7 @@ void CGameControllerMod::DoWincheck()
 
 		if(FinishPlayers >= AlivePlayers)
 		{
+			m_Winner = TEAM_BLUE;
 			m_Resetting = true;
 			EndRound();
 			char aBuf[64];
@@ -158,6 +161,7 @@ void CGameControllerMod::DoWincheck()
 
 		if(FinishPlayers[TEAM_RED] >= AlivePlayers[TEAM_RED])
 		{
+			m_Winner = TEAM_RED;
 			m_Resetting = true;
 			EndRound();
 			char aBuf[64];
@@ -167,6 +171,7 @@ void CGameControllerMod::DoWincheck()
 		}
 		else if(FinishPlayers[TEAM_BLUE] >= AlivePlayers[TEAM_BLUE])
 		{
+			m_Winner = TEAM_BLUE;
 			m_Resetting = true;
 			EndRound();
 			char aBuf[64];
