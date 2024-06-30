@@ -655,6 +655,9 @@ void CGameControllerMod::DoTeamChange(class CPlayer *pPlayer, int Team, bool DoC
 	Team = ClampTeam(Team);
 	if(Team == pPlayer->GetTeam())
 		return;
+		
+	if(m_GameType == GAMETYPE_HIDDEN && Team == TEAM_BLUE)
+		return;
 
 	int PlayerNum = 0;
 	for(auto &pPlayerA : GameServer()->m_apPlayers)
