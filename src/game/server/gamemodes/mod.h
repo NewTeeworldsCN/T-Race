@@ -8,6 +8,7 @@ class CGameControllerMod : public IGameController
 	int m_TeamPlayersNum[2];
 	int m_GameType;
 	int m_Winner;
+	bool m_Resetting;
 public:
 	CGameControllerMod(class CGameContext *pGameServer);
 	~CGameControllerMod();

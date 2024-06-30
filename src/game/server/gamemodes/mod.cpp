@@ -59,7 +59,7 @@ CScore *CGameControllerMod::Score()
 
 void CGameControllerMod::DoWincheck()
 {
-	if(m_GameOverTick != -1)
+	if(m_GameOverTick != -1 || m_Resetting)
 		return;
 
 	m_TeamPlayersNum[TEAM_RED] = 0;
@@ -69,8 +69,6 @@ void CGameControllerMod::DoWincheck()
 	{
 		if(pPlayerA)
 		{
-			if(!pPlayerA->GetCharacter())
-				continue;
 			if(pPlayerA->GetTeam() == TEAM_RED)
 				m_TeamPlayersNum[TEAM_RED] ++;
 			if(pPlayerA->GetTeam() == TEAM_BLUE)
@@ -85,17 +83,19 @@ void CGameControllerMod::DoWincheck()
 	{
 		if(!m_TeamPlayersNum[TEAM_BLUE] && m_TeamPlayersNum[TEAM_RED])
 		{
+			m_Resetting = true;
 			EndRound();
 			char aBuf[64];
-			str_format(aBuf, sizeof(aBuf), "%ss wins!", GetTeamName(TEAM_RED));
+			str_format(aBuf, sizeof(aBuf), "%ss win!", GetTeamName(TEAM_RED));
 			GameServer()->SendChatTarget(-1, aBuf);
 			return;
 		}
 		else if((Server()->Tick() >= m_RoundStartTick + g_Config.m_SvTimelimit * 60 * Server()->TickSpeed()) || (m_TeamPlayersNum[TEAM_BLUE] && !m_TeamPlayersNum[TEAM_RED]))
 		{
+			m_Resetting = true;
 			EndRound();
 			char aBuf[64];
-			str_format(aBuf, sizeof(aBuf), "%ss wins!", GetTeamName(TEAM_BLUE));
+			str_format(aBuf, sizeof(aBuf), "%ss win!", GetTeamName(TEAM_BLUE));
 			GameServer()->SendChatTarget(-1, aBuf);
 			return;
 		}
@@ -336,6 +336,7 @@ void CGameControllerMod::OnReset()
 	IGameController::OnReset();
 
 	m_Winner = -1;
+	m_Resetting = false;
 }
 
 void CGameControllerMod::Tick()
