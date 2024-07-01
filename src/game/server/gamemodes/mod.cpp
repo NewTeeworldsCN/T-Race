@@ -215,17 +215,8 @@ bool CGameControllerMod::CanSpawn(int Team, vec2 *pOutPos, int DDTeam)
 		return false;
 
 	CSpawnEval Eval;
-	if(m_GameType != GAMETYPE_DEATHRUN && m_GameType != GAMETYPE_TEAM)
-	{
-		EvaluateSpawnType(&Eval, 0, TEAM_FLOCK);
-		EvaluateSpawnType(&Eval, 1, TEAM_FLOCK);
-		EvaluateSpawnType(&Eval, 2, TEAM_FLOCK);
-	}
-	else
-	{
-		EvaluateSpawnType(&Eval, 0, TEAM_FLOCK);
-		EvaluateSpawnType(&Eval, Team, TEAM_FLOCK);
-	}
+	EvaluateSpawnType(&Eval, 0, DDTeam);
+	EvaluateSpawnType(&Eval, Team, DDTeam);
 
 	*pOutPos = Eval.m_Pos;
 	return Eval.m_Got;
