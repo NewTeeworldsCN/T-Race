@@ -999,7 +999,8 @@ void CCharacter::Die(int Killer, int Weapon, bool SendKillMsg)
 	}
 	else if(GameServer()->m_ModGameType != GAMETYPE_JAIL && GameServer()->m_ModGameType != GAMETYPE_TEAM)
 	{
-		m_pPlayer->m_DeadSpec = true;
+		if(m_pPlayer->GetTeam() != TEAM_RED || GameServer()->m_ModGameType != GAMETYPE_HIDDENDEATH)
+			m_pPlayer->m_DeadSpec = true;
 	}
 
 	// this is to rate limit respawning to 3 secs
