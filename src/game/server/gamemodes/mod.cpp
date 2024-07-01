@@ -66,15 +66,20 @@ void CGameControllerMod::DoWincheck()
 
 	m_TeamPlayersNum[TEAM_RED] = 0;
 	m_TeamPlayersNum[TEAM_BLUE] = 0;
+	int AlivePlayers[] = {0, 0};
 
 	for(auto &pPlayerA : GameServer()->m_apPlayers)
 	{
 		if(pPlayerA)
 		{
+			if(pPlayerA->GetTeam() < TEAM_RED || pPlayerA->GetTeam() > TEAM_BLUE)
+				continue;
 			if(pPlayerA->GetTeam() == TEAM_RED)
 				m_TeamPlayersNum[TEAM_RED] ++;
 			if(pPlayerA->GetTeam() == TEAM_BLUE)
 				m_TeamPlayersNum[TEAM_BLUE] ++;
+			if(!pPlayerA->m_DeadSpec)
+				AlivePlayers[pPlayerA->GetTeam()] ++;
 		}
 	}
 
@@ -83,6 +88,12 @@ void CGameControllerMod::DoWincheck()
 
 	if(m_GameType != GAMETYPE_TEAM)
 	{
+		if(m_GameType == GAMETYPE_HIDDENDEATH)
+		{
+			m_TeamPlayersNum[TEAM_RED] = AlivePlayers[TEAM_RED];
+			m_TeamPlayersNum[TEAM_BLUE] = AlivePlayers[TEAM_BLUE];
+		}
+
 		if((!m_TeamPlayersNum[TEAM_BLUE] && m_TeamPlayersNum[TEAM_RED]) || (m_GameType == GAMETYPE_DEATHRUN && Server()->Tick() >= m_RoundStartTick + g_Config.m_SvTimelimit * 60 * Server()->TickSpeed()))
 		{
 			m_Winner = TEAM_RED;
@@ -108,7 +119,6 @@ void CGameControllerMod::DoWincheck()
 	if(m_GameType == GAMETYPE_DEATHRUN)
 	{
 		int FinishPlayers = 0;
-		int AlivePlayers = 0;
 		for(auto &pPlayerA : GameServer()->m_apPlayers)
 		{
 			if(pPlayerA)
@@ -117,13 +127,11 @@ void CGameControllerMod::DoWincheck()
 				{
 					if(Teams().GetDDRaceState(pPlayerA) == DDRACE_FINISHED)
 						FinishPlayers ++;
-					if(!pPlayerA->m_DeadSpec)
-						AlivePlayers ++;
 				}
 			}
 		}
 
-		if(FinishPlayers >= AlivePlayers)
+		if(FinishPlayers >= AlivePlayers[TEAM_BLUE])
 		{
 			m_Winner = TEAM_BLUE;
 			m_Resetting = true;
@@ -137,7 +145,6 @@ void CGameControllerMod::DoWincheck()
 	if(m_GameType == GAMETYPE_TEAM)
 	{
 		int FinishPlayers[] = {0, 0};
-		int AlivePlayers[] = {0, 0};
 		for(auto &pPlayerA : GameServer()->m_apPlayers)
 		{
 			if(pPlayerA)
@@ -146,15 +153,11 @@ void CGameControllerMod::DoWincheck()
 				{
 					if(Teams().GetDDRaceState(pPlayerA) == DDRACE_FINISHED)
 						FinishPlayers[TEAM_RED] ++;
-					if(!pPlayerA->m_DeadSpec)
-						AlivePlayers[TEAM_RED] ++;
 				}
 				if(pPlayerA->GetTeam() == TEAM_BLUE)
 				{
 					if(Teams().GetDDRaceState(pPlayerA) == DDRACE_FINISHED)
 						FinishPlayers[TEAM_BLUE] ++;
-					if(!pPlayerA->m_DeadSpec)
-						AlivePlayers[TEAM_BLUE] ++;
 				}
 			}
 		}
