@@ -216,7 +216,7 @@ bool CGameControllerMod::CanSpawn(int Team, vec2 *pOutPos, int DDTeam)
 
 	CSpawnEval Eval;
 	EvaluateSpawnType(&Eval, 0, DDTeam);
-	EvaluateSpawnType(&Eval, Team, DDTeam);
+	EvaluateSpawnType(&Eval, Team + 1, DDTeam);
 
 	*pOutPos = Eval.m_Pos;
 	return Eval.m_Got;
