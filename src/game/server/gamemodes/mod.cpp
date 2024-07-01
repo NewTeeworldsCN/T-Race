@@ -72,6 +72,9 @@ void CGameControllerMod::DoWincheck()
 	{
 		if(pPlayerA)
 		{
+			if(pPlayerA->m_Sleep && Server()->Tick() == m_RoundStartTick + g_Config.m_SvReservedTime * Server()->TickSpeed())
+				pPlayerA->m_Sleep = false;
+
 			if(pPlayerA->GetTeam() < TEAM_RED || pPlayerA->GetTeam() > TEAM_BLUE)
 				continue;
 			if(pPlayerA->GetTeam() == TEAM_RED)
