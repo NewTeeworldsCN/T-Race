@@ -26,7 +26,7 @@ CGameControllerMod::CGameControllerMod(class CGameContext *pGameServer) :
 	else if(str_comp_nocase(g_Config.m_SvGametype, "hiddendeath") == 0)
 	{
 		m_pGameType = GAME_TYPE_NAME "|HiddenDeath";
-		m_GameType = GAMETYPE_HIDDEN;
+		m_GameType = GAMETYPE_HIDDENDEATH;
 	}
 	else if(str_comp_nocase(g_Config.m_SvGametype, "deathrun") == 0)
 	{
