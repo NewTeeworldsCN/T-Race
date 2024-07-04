@@ -251,8 +251,8 @@ MACRO_CONFIG_STR(SvGametype, sv_gametype, 32, "hidden", CFGFLAG_SERVER | CFGFLAG
 MACRO_CONFIG_INT(SvTournamentMode, sv_tournament_mode, 0, 0, 1, CFGFLAG_SERVER, "Tournament mode. When enabled, players joins the server as spectator")
 MACRO_CONFIG_INT(SvSpamprotection, sv_spamprotection, 1, 0, 1, CFGFLAG_SERVER, "Spam protection for: team change, chat, skin change, emotes and votes")
 
-MACRO_CONFIG_INT(SvSpectatorSlots, sv_spectator_slots, 0, 0, SERVER_MAX_CLIENTS, CFGFLAG_SERVER, "Number of slots to reserve for spectators")
-MACRO_CONFIG_INT(SvInactiveKickTime, sv_inactivekick_time, 2, 0, 1000, CFGFLAG_SERVER, "How many minutes to wait before taking care of inactive players")
+MACRO_CONFIG_INT(SvSpectatorSlots, sv_spectator_slots, 0, 0, MAX_CLIENTS, CFGFLAG_SERVER, "Number of slots to reserve for spectators")
+MACRO_CONFIG_INT(SvInactiveKickTime, sv_inactivekick_time, 0, 0, 1000, CFGFLAG_SERVER, "How many minutes to wait before taking care of inactive players")
 MACRO_CONFIG_INT(SvInactiveKick, sv_inactivekick, 2, 0, 2, CFGFLAG_SERVER, "How to deal with inactive players (0=move to spectator, 1=move to free spectator slot/kick, 2=kick)")
 
 MACRO_CONFIG_INT(SvStrictSpectateMode, sv_strict_spectate_mode, 0, 0, 1, CFGFLAG_SERVER, "Restricts information in spectator mode")
