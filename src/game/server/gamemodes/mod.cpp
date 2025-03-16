@@ -257,10 +257,10 @@ void CGameControllerMod::HandleCharacterTiles(CCharacter *pChr, int MapIndex)
 		int Tile2 = GameServer()->Collision()->GetTileIndex(S2);
 		int Tile3 = GameServer()->Collision()->GetTileIndex(S3);
 		int Tile4 = GameServer()->Collision()->GetTileIndex(S4);
-		int FTile1 = GameServer()->Collision()->GetFTileIndex(S1);
-		int FTile2 = GameServer()->Collision()->GetFTileIndex(S2);
-		int FTile3 = GameServer()->Collision()->GetFTileIndex(S3);
-		int FTile4 = GameServer()->Collision()->GetFTileIndex(S4);
+		int FTile1 = GameServer()->Collision()->GetFrontTileIndex(S1);
+		int FTile2 = GameServer()->Collision()->GetFrontTileIndex(S2);
+		int FTile3 = GameServer()->Collision()->GetFrontTileIndex(S3);
+		int FTile4 = GameServer()->Collision()->GetFrontTileIndex(S4);
 
 		const int PlayerDDRaceState = pChr->m_DDRaceState;
 		bool IsOnStartTile = (TileIndex == TILE_START) || (TileFIndex == TILE_START) || FTile1 == TILE_START || FTile2 == TILE_START || FTile3 == TILE_START || FTile4 == TILE_START || Tile1 == TILE_START || Tile2 == TILE_START || Tile3 == TILE_START || Tile4 == TILE_START;
