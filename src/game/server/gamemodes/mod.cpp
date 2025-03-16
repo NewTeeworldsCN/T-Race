@@ -602,7 +602,6 @@ void CGameControllerMod::Tick()
 						vec2 Direction = normalize(pChr->GetPos() - m_JailPos);
 						pChr->SetPosition(m_JailPos + Direction * minimum(distance(pChr->GetPos(), m_JailPos), 240.f));
 					}
-					break;
 				}
 			}
 		}
@@ -872,7 +871,7 @@ void CGameControllerMod::OnCharacterDamage(class CCharacter *pVictim, class CPla
 					else
 					{
 						char aBuf[64];
-						str_format(aBuf, sizeof(aBuf), "Release progress: %d%", round_to_int(float(JailProgress) / 15) * 100);
+						str_format(aBuf, sizeof(aBuf), "Release progress: %d%", round_to_int(float(JailProgress) / 15.f * 100.f));
 						GameServer()->SendChatTarget(pVictim->GetPlayer()->GetCid(), aBuf);
 					}	
 				}
