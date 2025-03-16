@@ -10,7 +10,7 @@ class CGameControllerMod : public IGameController
 	int m_WardenId; // jail
 	bool m_IsJailSet;  // jail
 	vec2 m_JailPos; // jail
-	int m_JailIds[10]; // jail
+	int m_aJailIds[10]; // jail
 
 	int m_GameType;
 	int m_Winner;

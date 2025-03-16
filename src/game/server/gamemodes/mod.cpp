@@ -44,9 +44,9 @@ CGameControllerMod::CGameControllerMod(class CGameContext *pGameServer) :
 		m_GameType = GAMETYPE_TEAM;
 	}
 
-	for(auto& Id : m_JailIds)
+	for(int i = 0; i < 10; i++)
 	{
-		Id = Server()->SnapNewId();
+		m_aJailIds[i] = Server()->SnapNewId();
 	}
 
 	m_Resetting = false;
@@ -63,9 +63,9 @@ CGameControllerMod::CGameControllerMod(class CGameContext *pGameServer) :
 
 CGameControllerMod::~CGameControllerMod()
 {
-	for(auto& Id : m_JailIds)
+	for(int i = 0; i < 10; i++)
 	{
-		Server()->SnapFreeId(Id);
+		Server()->SnapFreeId(m_aJailIds[i]);
 	}
 }
 
@@ -733,7 +733,7 @@ void CGameControllerMod::Snap(int SnappingClient)
 			if(NetworkClipped(GameServer(), SnappingClient, Pos))
 				return;
 
-			CNetObj_Projectile *pProj = static_cast<CNetObj_Projectile *>(Server()->SnapNewItem(NETOBJTYPE_PROJECTILE, m_JailIds[i], sizeof(CNetObj_Projectile)));
+			CNetObj_Projectile *pProj = static_cast<CNetObj_Projectile *>(Server()->SnapNewItem(NETOBJTYPE_PROJECTILE, m_aJailIds[i], sizeof(CNetObj_Projectile)));
 			pProj->m_X = (int)(Pos.x);
 			pProj->m_Y = (int)(Pos.y);
 			pProj->m_VelX = (int)(0.0f);
