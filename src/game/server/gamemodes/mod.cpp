@@ -600,7 +600,7 @@ void CGameControllerMod::Tick()
 					if(m_aPlayersJail[i] > 0)
 					{
 						vec2 Direction = normalize(pChr->GetPos() - m_JailPos);
-						pChr->SetPosition(Direction * minimum(distance(pChr->GetPos(), m_JailPos), 480.f));
+						pChr->SetPosition(Direction * minimum(distance(pChr->GetPos(), m_JailPos), 240.f));
 					}
 					break;
 				}
@@ -733,7 +733,7 @@ void CGameControllerMod::Snap(int SnappingClient)
 		for(int i = 0; i < 10; i++)
 		{
 			float shiftedAngle = angle + 2.0 * pi * static_cast<float>(i) / static_cast<float>(10);
-			vec2 Pos(m_JailPos.x + 480.f * cos(shiftedAngle), m_JailPos.y + 480.f * sin(shiftedAngle));
+			vec2 Pos(m_JailPos.x + 240.f * cos(shiftedAngle), m_JailPos.y + 240.f * sin(shiftedAngle));
 			if(NetworkClipped(GameServer(), SnappingClient, Pos))
 				return;
 
