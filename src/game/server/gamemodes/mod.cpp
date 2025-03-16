@@ -600,7 +600,7 @@ void CGameControllerMod::Tick()
 					if(m_aPlayersJail[i] > 0)
 					{
 						vec2 Direction = normalize(pChr->GetPos() - m_JailPos);
-						pChr->SetPosition(Direction * minimum(distance(pChr->GetPos(), m_JailPos), 240.f));
+						pChr->SetPosition(m_JailPos + Direction * minimum(distance(pChr->GetPos(), m_JailPos), 240.f));
 					}
 					break;
 				}
@@ -727,7 +727,7 @@ void CGameControllerMod::Snap(int SnappingClient)
 
 	if(m_GameType == GAMETYPE_JAIL && m_IsJailSet)
 	{
-		float time = (Server()->Tick() - m_RoundStartTick/ (float)Server()->TickSpeed());
+		float time = (Server()->Tick() - m_RoundStartTick / (float) Server()->TickSpeed());
 		float angle = fmodf(time * pi / 2, 2.0f * pi);
 
 		for(int i = 0; i < 10; i++)
