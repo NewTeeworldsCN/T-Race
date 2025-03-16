@@ -41,11 +41,6 @@
 
 */
 
-enum
-{
-	NUM_TUNEZONES = 256
-};
-
 enum EGameTypes
 {
 	GAMETYPE_HIDDEN = 0,
