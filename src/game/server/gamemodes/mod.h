@@ -41,5 +41,6 @@ public:
 	void DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg = true) override;
 	bool CanJoinTeam(int Team, int NotThisId, char *pErrorReason, int ErrorReasonSize) override;
 	void OnCharacterDamage(class CCharacter *pVictim, class CPlayer *pFrom, int Weapon, int Damage) override;
+	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 };
 #endif // GAME_SERVER_GAMEMODES_MOD_H

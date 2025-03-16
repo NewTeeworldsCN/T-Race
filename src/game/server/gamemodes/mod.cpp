@@ -880,3 +880,14 @@ void CGameControllerMod::OnCharacterDamage(class CCharacter *pVictim, class CPla
 	}
 }
 
+int CGameControllerMod::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
+{
+	if(m_GameType == GAMETYPE_JAIL)
+	{
+		if(pVictim->GetPlayer()->GetTeam() == TEAM_BLUE)
+		{
+			m_aPlayersJail[pVictim->GetId()] = 15;
+		}
+	}
+	return 0;
+}
