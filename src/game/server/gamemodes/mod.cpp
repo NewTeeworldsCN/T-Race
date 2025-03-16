@@ -726,12 +726,9 @@ void CGameControllerMod::Snap(int SnappingClient)
 
 	if(m_GameType == GAMETYPE_JAIL && m_IsJailSet)
 	{
-		float time = (Server()->Tick() - m_RoundStartTick) / ((float) Server()->TickSpeed());
-		float angle = fmodf(time * pi / 2, 2.0f * pi);
-
 		for(int i = 0; i < 10; i++)
 		{
-			float shiftedAngle = angle + 2.0 * pi * static_cast<float>(i) / static_cast<float>(10);
+			float shiftedAngle = 2.0 * pi * static_cast<float>(i) / static_cast<float>(10);
 			vec2 Pos(m_JailPos.x + 240.f * cos(shiftedAngle), m_JailPos.y + 240.f * sin(shiftedAngle));
 			if(NetworkClipped(GameServer(), SnappingClient, Pos))
 				return;
