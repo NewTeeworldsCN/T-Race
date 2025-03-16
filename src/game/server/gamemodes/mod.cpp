@@ -726,7 +726,7 @@ void CGameControllerMod::Snap(int SnappingClient)
 
 	if(m_GameType == GAMETYPE_JAIL && m_IsJailSet)
 	{
-		float time = (Server()->Tick() - m_RoundStartTick / (float) Server()->TickSpeed());
+		float time = (Server()->Tick() - m_RoundStartTick) / ((float) Server()->TickSpeed());
 		float angle = fmodf(time * pi / 2, 2.0f * pi);
 
 		for(int i = 0; i < 10; i++)
@@ -863,7 +863,7 @@ void CGameControllerMod::OnCharacterDamage(class CCharacter *pVictim, class CPla
 			}
 			else if(pFrom->GetTeam() == TEAM_BLUE && pVictim->GetPlayer()->GetTeam() == TEAM_BLUE)
 			{
-				if(JailProgress)
+				if(JailProgress && m_aPlayersJail[pFrom->GetCid()] <= 0)
 				{
 					JailProgress = maximum(0, JailProgress - Damage);
 					if(JailProgress == 0)
