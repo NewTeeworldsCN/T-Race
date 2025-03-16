@@ -270,6 +270,8 @@ public:
 	bool IsSuper() const { return m_Core.m_Super; }
 	bool IsHidden() const { return m_Hidden; }
 
+	bool IsAttack();
+
 	CSaveTee &GetLastRescueTeeRef(int Mode = RESCUEMODE_AUTO) { return m_RescueTee[Mode]; }
 	CTuningParams *GetTuning(int Zone) { return Zone ? &TuningList()[Zone] : Tuning(); }
 };

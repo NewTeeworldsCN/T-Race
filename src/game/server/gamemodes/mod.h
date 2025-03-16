@@ -6,6 +6,12 @@
 class CGameControllerMod : public IGameController
 {
 	int m_TeamPlayersNum[2];
+	int m_aPlayersJail[SERVER_MAX_CLIENTS]; // jail
+	int m_WardenId; // jail
+	bool m_IsJailSet;  // jail
+	vec2 m_JailPos; // jail
+	int m_JailIds[10]; // jail
+
 	int m_GameType;
 	int m_Winner;
 	bool m_Resetting;
@@ -33,5 +39,7 @@ public:
 	void Snap(int SnappingClient) override;
 
 	void DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg = true) override;
+	bool CanJoinTeam(int Team, int NotThisId, char *pErrorReason, int ErrorReasonSize) override;
+	void OnCharacterDamage(class CCharacter *pVictim, class CPlayer *pFrom, int Weapon, int Damage) override;
 };
 #endif // GAME_SERVER_GAMEMODES_MOD_H

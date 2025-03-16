@@ -1028,29 +1028,8 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
 	if(Dmg)
 	{
-		if((Weapon == WEAPON_HAMMER || Weapon == WEAPON_NINJA) && GameServer()->m_apPlayers[From] && GameServer()->m_apPlayers[From]->GetTeam() != m_pPlayer->GetTeam())
-		{
-			bool Skip = false;
-			if(GameServer()->m_ModGameType == GAMETYPE_HIDDEN || GameServer()->m_ModGameType == GAMETYPE_HIDDENDEATH)
-			{
-				if(GameServer()->m_apPlayers[From]->GetTeam() == TEAM_BLUE)
-				{
-					if(Weapon == WEAPON_NINJA)
-					{
-						GameServer()->GetPlayerChar(From)->RemoveNinja();
-						m_pPlayer->SetForceTeam(TEAM_BLUE);
-					}
-					Skip = true;
-				}
-			}
-
-			if(GameServer()->m_ModGameType != GAMETYPE_JAIL && !Skip)
-			{
-				Die(From, Weapon, true);
-				return false;
-			}
-		}
 		SetEmote(EMOTE_PAIN, Server()->Tick() + 500 * Server()->TickSpeed() / 1000);
+		GameServer()->m_pController->OnCharacterDamage(this, From == -1 ? nullptr : GameServer()->m_apPlayers[From], Weapon, Dmg);
 	}
 
 	vec2 Temp = m_Core.m_Vel + Force;
@@ -2556,4 +2535,9 @@ void CCharacter::SwapClients(int Client1, int Client2)
 {
 	const int HookedPlayer = m_Core.HookedPlayer();
 	m_Core.SetHookedPlayer(HookedPlayer == Client1 ? Client2 : HookedPlayer == Client2 ? Client1 : HookedPlayer);
+}
+
+bool CCharacter::IsAttack()
+{
+	return m_AttackTick == Server()->Tick() - 1;
 }

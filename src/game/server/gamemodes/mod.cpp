@@ -44,15 +44,30 @@ CGameControllerMod::CGameControllerMod(class CGameContext *pGameServer) :
 		m_GameType = GAMETYPE_TEAM;
 	}
 
+	for(auto& Id : m_JailIds)
+	{
+		Id = Server()->SnapNewId();
+	}
+
 	m_Resetting = false;
 
 	m_GameFlags = GAMEFLAG_TEAMS;
 	GameServer()->m_ModGameType = m_GameType;
 
+	m_IsJailSet = false;
+	mem_zero(m_aPlayersJail, sizeof(m_aPlayersJail));
+	m_WardenId = -1;
+
 	g_Config.m_SvTeam = SV_TEAM_FORBIDDEN; // no ddnet team!
 }
 
-CGameControllerMod::~CGameControllerMod() = default;
+CGameControllerMod::~CGameControllerMod()
+{
+	for(auto& Id : m_JailIds)
+	{
+		Server()->SnapFreeId(Id);
+	}
+}
 
 CScore *CGameControllerMod::Score()
 {
@@ -81,7 +96,9 @@ void CGameControllerMod::DoWincheck()
 				m_TeamPlayersNum[TEAM_RED] ++;
 			if(pPlayerA->GetTeam() == TEAM_BLUE)
 				m_TeamPlayersNum[TEAM_BLUE] ++;
-			if(!pPlayerA->m_DeadSpec)
+			if(!pPlayerA->m_DeadSpec && m_GameType != GAMETYPE_JAIL)
+				AlivePlayers[pPlayerA->GetTeam()] ++;
+			if(m_GameType == GAMETYPE_JAIL && m_aPlayersJail[pPlayerA->GetCid()] <= 0)
 				AlivePlayers[pPlayerA->GetTeam()] ++;
 		}
 	}
@@ -91,7 +108,7 @@ void CGameControllerMod::DoWincheck()
 
 	if(m_GameType != GAMETYPE_TEAM)
 	{
-		if(m_GameType == GAMETYPE_HIDDENDEATH)
+		if(m_GameType == GAMETYPE_HIDDENDEATH || m_GameType == GAMETYPE_JAIL)
 		{
 			m_TeamPlayersNum[TEAM_RED] = AlivePlayers[TEAM_RED];
 			m_TeamPlayersNum[TEAM_BLUE] = AlivePlayers[TEAM_BLUE];
@@ -352,6 +369,8 @@ void CGameControllerMod::OnPlayerConnect(CPlayer *pPlayer)
 			{
 				if(m_GameType != GAMETYPE_JAIL)
 					pPlayer->SetForceTeam(TEAM_RED);
+				else
+					m_aPlayersJail[ClientId] = 15;
 			}
 		}
 	}
@@ -387,6 +406,7 @@ void CGameControllerMod::OnPlayerDisconnect(CPlayer *pPlayer, const char *pReaso
 		if(Teams().IsInvited(Team, ClientId))
 			Teams().SetClientInvited(Team, ClientId, false);
 
+	m_aPlayersJail[ClientId] = 0;
 	int PlayerNum = 0;
 	for(auto &pPlayerA : GameServer()->m_apPlayers)
 	{
@@ -427,6 +447,10 @@ void CGameControllerMod::OnReset()
 		return;
 	}
 
+	m_IsJailSet = false;
+	mem_zero(m_aPlayersJail, sizeof(m_aPlayersJail));
+	m_WardenId = -1;
+
 	// choose red team;
 	switch(m_GameType)
 	{
@@ -455,6 +479,9 @@ void CGameControllerMod::OnReset()
 					CPlayer *pPlayer = GameServer()->m_apPlayers[rand() % MAX_CLIENTS];
 					if(pPlayer && pPlayer->GetTeam() != TEAM_SPECTATORS)
 					{
+						if(m_GameType == GAMETYPE_JAIL && m_WardenId == -1)
+							m_WardenId = pPlayer->GetCid();
+
 						pPlayer->SetForceTeam(TEAM_RED);
 						pPlayer->m_Sleep = true;
 						break;
@@ -504,13 +531,18 @@ void CGameControllerMod::Tick()
 		{
 			char aBuf[64];
 			str_format(aBuf, sizeof(aBuf), "%ss have been released", GetTeamName(TEAM_RED));
-			GameServer()->SendBroadcast(aBuf, -1);
+			GameServer()->SendChatTarget(-1, aBuf);
 			for(auto &pPlayer : GameServer()->m_apPlayers)
 			{
 				if(pPlayer)
 				{
 					pPlayer->m_Sleep = false;
 				}
+			}
+			if(m_WardenId != -1 && m_GameType == GAMETYPE_JAIL)
+			{
+				GameServer()->SendChatTarget(m_WardenId, "You're warden. Set jail by hammering.");
+				GameServer()->SendBroadcast("You're warden. Set jail by hammering.", m_WardenId);
 			}
 		}
 	}
@@ -529,6 +561,48 @@ void CGameControllerMod::Tick()
 				else if(pPlayer->GetTeam() == TEAM_BLUE)
 				{
 					pPlayer->m_Sleep = false;
+				}
+			}
+		}
+	}
+	else if(m_GameType == GAMETYPE_JAIL)
+	{
+		if(!m_IsJailSet)
+		{
+			CCharacter *pWarden = GameServer()->GetPlayerChar(m_WardenId);
+			if(!pWarden) // choose a new warden
+			{
+				for(int i = 0; i < MAX_CLIENTS; i++)
+				{
+					if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED)
+					{
+						m_WardenId = i;
+						GameServer()->SendChatTarget(m_WardenId, "You're new warden. Set jail by hammering.");
+						GameServer()->SendBroadcast("You're new warden. Set jail by hammering.", m_WardenId);
+						break;
+					}
+				}
+			}
+			else if(pWarden->GetActiveWeapon() == WEAPON_HAMMER && pWarden->IsAttack())
+			{
+				m_IsJailSet = true;
+				m_JailPos = pWarden->GetPos();
+				GameServer()->SendChatTarget(-1, "Jail has been set!");
+			}
+		}
+		else
+		{
+			for(int i = 0; i < MAX_CLIENTS; i++)
+			{
+				if(GameServer()->GetPlayerChar(i) && GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE)
+				{
+					CCharacter *pChr = GameServer()->GetPlayerChar(i);
+					if(m_aPlayersJail[i] > 0)
+					{
+						vec2 Direction = normalize(pChr->GetPos() - m_JailPos);
+						pChr->SetPosition(Direction * minimum(distance(pChr->GetPos(), m_JailPos), 480.f));
+					}
+					break;
 				}
 			}
 		}
@@ -556,6 +630,7 @@ void CGameControllerMod::Snap(int SnappingClient)
 		pGameInfoObj->m_GameStateFlags |= GAMESTATEFLAG_PAUSED;
 	pGameInfoObj->m_RoundStartTick = m_RoundStartTick;
 	pGameInfoObj->m_WarmupTimer = m_Warmup;
+	pGameInfoObj->m_TimeLimit = g_Config.m_SvTimelimit;
 
 	pGameInfoObj->m_RoundNum = 0;
 	pGameInfoObj->m_RoundCurrent = m_RoundCount + 1;
@@ -648,17 +723,36 @@ void CGameControllerMod::Snap(int SnappingClient)
 		pRaceData->m_Precision = 2;
 		pRaceData->m_RaceFlags = protocol7::RACEFLAG_KEEP_WANTED_WEAPON;
 	}
-
 	GameServer()->SnapSwitchers(SnappingClient);
+
+	if(m_GameType == GAMETYPE_JAIL && m_IsJailSet)
+	{
+		float time = (Server()->Tick() - m_RoundStartTick/ (float)Server()->TickSpeed());
+		float angle = fmodf(time * pi / 2, 2.0f * pi);
+
+		for(int i = 0; i < 10; i++)
+		{
+			float shiftedAngle = angle + 2.0 * pi * static_cast<float>(i) / static_cast<float>(10);
+			vec2 Pos(m_JailPos.x + 480.f * cos(shiftedAngle), m_JailPos.y + 480.f * sin(shiftedAngle));
+			if(NetworkClipped(GameServer(), SnappingClient, Pos))
+				return;
+
+			CNetObj_Projectile *pProj = static_cast<CNetObj_Projectile *>(Server()->SnapNewItem(NETOBJTYPE_PROJECTILE, m_JailIds[i], sizeof(CNetObj_Projectile)));
+			pProj->m_X = (int)(Pos.x);
+			pProj->m_Y = (int)(Pos.y);
+			pProj->m_VelX = (int)(0.0f);
+			pProj->m_VelY = (int)(0.0f);
+			pProj->m_StartTick = Server()->Tick();
+			pProj->m_Type = WEAPON_HAMMER;
+		}
+	}
+
 }
 
 void CGameControllerMod::DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg)
 {
 	Team = ClampTeam(Team);
 	if(Team == pPlayer->GetTeam())
-		return;
-		
-	if(m_GameType == GAMETYPE_HIDDEN && Team == TEAM_BLUE)
 		return;
 
 	int PlayerNum = 0;
@@ -697,3 +791,93 @@ void CGameControllerMod::DoTeamChange(class CPlayer *pPlayer, int Team, bool DoC
 	if(PlayerNum == 1 && Team != TEAM_SPECTATORS)
 		EndRound();
 }
+
+bool CGameControllerMod::CanJoinTeam(int Team, int NotThisId, char *pErrorReason, int ErrorReasonSize)
+{
+	const CPlayer *pPlayer = GameServer()->m_apPlayers[NotThisId];
+	if(pPlayer && pPlayer->IsPaused())
+	{
+		if(pErrorReason)
+			str_copy(pErrorReason, "Use /pause first then you can kill", ErrorReasonSize);
+		return false;
+	}
+	if(Team == TEAM_SPECTATORS || (pPlayer && pPlayer->GetTeam() != TEAM_SPECTATORS))
+		return true;
+	if(m_GameType == GAMETYPE_DEATHRUN || m_GameType == GAMETYPE_JAIL || m_GameType == GAMETYPE_TEAM)
+		return false;
+	if((m_GameType == GAMETYPE_HIDDEN || m_GameType == GAMETYPE_HIDDENDEATH) && Team == TEAM_BLUE)
+		return false;
+
+	int aNumplayers[2] = {0, 0};
+	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
+		if(GameServer()->m_apPlayers[i] && i != NotThisId)
+		{
+			if(GameServer()->m_apPlayers[i]->GetTeam() >= TEAM_RED && GameServer()->m_apPlayers[i]->GetTeam() <= TEAM_BLUE)
+				aNumplayers[GameServer()->m_apPlayers[i]->GetTeam()]++;
+		}
+	}
+
+	if((aNumplayers[0] + aNumplayers[1]) < Server()->MaxClients() - g_Config.m_SvSpectatorSlots)
+		return true;
+
+	if(pErrorReason)
+		str_format(pErrorReason, ErrorReasonSize, "Only %d active players are allowed", Server()->MaxClients() - g_Config.m_SvSpectatorSlots);
+	return false;
+}
+
+void CGameControllerMod::OnCharacterDamage(class CCharacter *pVictim, class CPlayer *pFrom, int Weapon, int Damage)
+{
+	if((Weapon == WEAPON_HAMMER || Weapon == WEAPON_NINJA) && pFrom)
+	{
+		bool Skip = false;
+		if((GameServer()->m_ModGameType == GAMETYPE_HIDDEN || GameServer()->m_ModGameType == GAMETYPE_HIDDENDEATH) && pFrom->GetTeam() != pVictim->GetPlayer()->GetTeam())
+		{
+			if(pFrom->GetTeam() == TEAM_BLUE)
+			{
+				if(Weapon == WEAPON_NINJA)
+				{
+					if(pFrom->GetCharacter())
+						pFrom->GetCharacter()->RemoveNinja();
+					pVictim->GetPlayer()->SetForceTeam(TEAM_BLUE);
+				}
+				Skip = true;
+			}
+		}
+
+		if(GameServer()->m_ModGameType != GAMETYPE_JAIL && !Skip)
+		{
+			pVictim->Die(pFrom->GetCid(), Weapon, true);
+			return;
+		}
+
+		if(GameServer()->m_ModGameType == GAMETYPE_JAIL)
+		{
+			int& JailProgress = m_aPlayersJail[pVictim->GetPlayer()->GetCid()];
+			if(pFrom->GetTeam() == TEAM_RED && m_IsJailSet)
+			{
+				GameServer()->CreateSound(pVictim->GetPos(), SOUND_PLAYER_PAIN_LONG);
+				pVictim->SetPosition(m_JailPos);
+				GameServer()->CreatePlayerSpawn(pVictim->GetPos());
+				JailProgress = 15;
+				GameServer()->SendChatTarget(pVictim->GetPlayer()->GetCid(), "You were caught");
+			}
+			else if(pFrom->GetTeam() == TEAM_BLUE && pVictim->GetPlayer()->GetTeam() == TEAM_BLUE)
+			{
+				if(JailProgress)
+				{
+					JailProgress = maximum(0, JailProgress - Damage);
+					if(JailProgress == 0)
+						GameServer()->SendChatTarget(pVictim->GetPlayer()->GetCid(), "You were released");
+					else
+					{
+						char aBuf[64];
+						str_format(aBuf, sizeof(aBuf), "Release progress: %d%", round_to_int(float(JailProgress) / 15) * 100);
+						GameServer()->SendChatTarget(pVictim->GetPlayer()->GetCid(), aBuf);
+					}	
+				}
+			}
+		}
+	}
+}
+

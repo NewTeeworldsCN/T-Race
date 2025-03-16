@@ -149,6 +149,8 @@ public:
 	float m_CurrentRecord;
 	CGameTeams &Teams() { return m_Teams; }
 	std::shared_ptr<CScoreLoadBestTimeResult> m_pLoadBestTimeResult;
+
+	virtual void OnCharacterDamage(class CCharacter *pVictim, class CPlayer *pFrom, int Weapon, int Damage) {};
 };
 
 #endif
