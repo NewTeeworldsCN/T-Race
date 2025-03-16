@@ -850,7 +850,7 @@ void CGameControllerMod::OnCharacterDamage(class CCharacter *pVictim, class CPla
 		if(GameServer()->m_ModGameType == GAMETYPE_JAIL)
 		{
 			int& JailProgress = m_aPlayersJail[pVictim->GetPlayer()->GetCid()];
-			if(pFrom->GetTeam() == TEAM_RED && m_IsJailSet)
+			if(pFrom->GetTeam() == TEAM_RED && pVictim->GetPlayer()->GetTeam() == TEAM_BLUE && m_IsJailSet)
 			{
 				GameServer()->CreateSound(pVictim->GetPos(), SOUND_PLAYER_PAIN_LONG);
 				pVictim->SetPosition(m_JailPos);
