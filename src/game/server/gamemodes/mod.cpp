@@ -733,13 +733,9 @@ void CGameControllerMod::Snap(int SnappingClient)
 			if(NetworkClipped(GameServer(), SnappingClient, Pos))
 				return;
 
-			CNetObj_Projectile *pProj = static_cast<CNetObj_Projectile *>(Server()->SnapNewItem(NETOBJTYPE_PROJECTILE, m_aJailIds[i], sizeof(CNetObj_Projectile)));
-			pProj->m_X = (int)(Pos.x);
-			pProj->m_Y = (int)(Pos.y);
-			pProj->m_VelX = (int)(0.0f);
-			pProj->m_VelY = (int)(0.0f);
-			pProj->m_StartTick = Server()->Tick();
-			pProj->m_Type = WEAPON_HAMMER;
+			int SnappingClientVersion = GameServer()->GetClientVersion(SnappingClient);
+			bool Sixup = Server()->IsSixup(SnappingClient);
+			GameServer()->SnapPickup(CSnapContext(SnappingClientVersion, Sixup), m_aJailIds[i], Pos, POWERUP_ARMOR, 0, 0);
 		}
 	}
 
