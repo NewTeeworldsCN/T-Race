@@ -822,9 +822,9 @@ void CGameControllerMod::OnCharacterDamage(class CCharacter *pVictim, class CPla
 {
 	if((Weapon == WEAPON_HAMMER || Weapon == WEAPON_NINJA) && pFrom)
 	{
-		bool Skip = false;
 		if((GameServer()->m_ModGameType == GAMETYPE_HIDDEN || GameServer()->m_ModGameType == GAMETYPE_HIDDENDEATH) && pFrom->GetTeam() != pVictim->GetPlayer()->GetTeam())
 		{
+			bool Skip = false;
 			if(pFrom->GetTeam() == TEAM_BLUE)
 			{
 				if(Weapon == WEAPON_NINJA)
@@ -835,12 +835,12 @@ void CGameControllerMod::OnCharacterDamage(class CCharacter *pVictim, class CPla
 				}
 				Skip = true;
 			}
-		}
 
-		if(GameServer()->m_ModGameType != GAMETYPE_JAIL && !Skip)
-		{
-			pVictim->Die(pFrom->GetCid(), Weapon, true);
-			return;
+			if(GameServer()->m_ModGameType != GAMETYPE_JAIL && !Skip)
+			{
+				pVictim->Die(pFrom->GetCid(), Weapon, true);
+				return;
+			}
 		}
 
 		if(GameServer()->m_ModGameType == GAMETYPE_JAIL)
